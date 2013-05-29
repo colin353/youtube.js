@@ -1,0 +1,56 @@
+<html>
+<head>
+	<title>youtube.js server</title>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+	<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+	<script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+	<script src='/assets/js/swfobject.js'></script>
+	<script src="http://192.168.0.104:8081/socket.io/socket.io.js"></script>
+	<script src='/assets/js/application.js'></script>
+	<link href="/assets/css/style.css" rel="stylesheet">
+</head>
+<body>
+<div class='container'>
+<div class='span6'>
+<h1>youtube.js server</h1>
+
+<object width="640" height="360"> 
+<param name="movie" value="https://www.youtube.com/v/30Acy8Z9jkw?version=3"></param>
+<param name="allowFullScreen" value="true"></param>
+<param name="allowScriptAccess" value="always"></param>
+<embed  type="application/x-shockwave-flash" allowfullscreen="true" id='ytplayer' allowScriptAccess="always" width="640" height="360"></embed>
+</object>
+
+<div class='controls'>
+	<div class=volume>
+		<span class=titlecard style='float:left'>volume</span><div class='volume-container'><div class='volume-control'></div></div>
+	</div>
+	<div class='container'>
+	<div class='span3'>
+		<span class=titlecard>pause<i class=icon-pause></i></span>
+		
+	</div>
+	<div class='span3'>
+		<span class=titlecard>skip
+		<i class=icon-fast-forward></i></span>
+	</div>
+</div>
+</div>
+
+</div>
+
+<div class='span5' style='padding-left: 20px; border-left: 1px solid #AAAAAA'>
+<h1>upcoming</h1>
+
+<ul class="media-list">
+  
+</ul>
+
+</div>
+
+
+</div>
+
+<div class=bigblock></div>
+</body>
+</html>
