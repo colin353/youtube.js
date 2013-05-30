@@ -4,42 +4,11 @@
 # Config and setup parameters
 
 socket_url = 'http://192.168.0.104:8081'
-size = {x: 436, y: 356 }
-playerID = 'ytplayer';
 video_media = []
 playing_video = null
 socket = null
 
 allLoaded = no
-
-# ----------------------------------
-# YouTube API connections
-# ----------------------------------
-
-# This function actually connects the
-# existing SWF object to a video.
-embedYoutube = ->
-	swfobject.embedSWF("http://www.youtube.com/apiplayer?enablejsapi=1&playerapiid=ytplayer&version=3",
-                       "ytplayer", size.x, size.y, "8", null, null, { allowScriptAccess: 'always'} , {id: playerID });
-
-# When the document loads, load a video (blank)
-$ ->
-	embedYoutube()
-
-# This function is called by the
-# youtube flash object when it is
-# ready to go.
-onYouTubePlayerReady = ->
-	document.player = $('#'+playerID).get(0)
-	document.player.playVideo()
-	document.connectToServer()	
-
-video_not_yet_started = ->
-	switch document.player.getPlayerState()
-		when 1,2,3,5
-			return no
-		else
-			return yes
 
 # ----------------------------------
 # Sockets and connections
@@ -52,37 +21,30 @@ document.connectToServer = ->
 
 	socket.on 'play', (data) ->
 		console.log "Play detected",data
-		document.player.playVideo()
 		isPlaying()
 
 	socket.on 'pause', (data) ->
 		console.log "Pause detected",data
-		document.player.pauseVideo()
 		isNoLongerPlaying()
 
 	socket.on 'volume', (vol) ->
 		console.log "Volume change detected ",vol
 		document.volume.setVolume(vol)
 
-	socket.on 'skipped', (video_code) ->
-		console.log "Skip initiated on video ",video_code
-		if playing_video.video_code == video_code
-			document.player.loadVideoById video_media[0].video.video_code
-		else 
-			console.log 'Skipped video actually not playing, so we are good'
 
 	socket.on 'upcoming', (videos) ->
 		console.log 'Got a new video list.'
-		if(videos.length > 0 && video_not_yet_started())
-			document.player.loadVideoById(videos[0].video_code);
+
+		playing_video = videos[0]
+
+		if(videos.length > 0)
+			newMainVideoLoaded(videos[0]);
 
 		video_media = []
 		$('.media-list').html(' ');	
 
 		for v in videos.slice(1) 
 			video_media.push new MediaInterfaceElement(v)
-
-		playing_video = videos[0]
 
 		setTimeout(renderUpcomingIfAvailable,200)
 
@@ -92,16 +54,18 @@ document.play = ->
 document.pause = ->
 	socket.emit 'pause', {}
 
-document.setVolume = (vol) ->
-	socket.emit 'volume', vol
-
 document.update = ->
 	socket.emit 'update', {}
 
+document.setVolume = (vol) ->
+	socket.emit 'volume', vol
+
 document.skip  =  ->
 	vid = playing_video 
-	document.player.loadVideoById video_media[0].video.video_code
 	socket.emit 'skip', vid
+
+$ -> 
+	document.connectToServer()
 
 renderUpcomingIfAvailable = ->
 	all_loaded = yes
@@ -156,7 +120,6 @@ class VolumeController
 	setVolume: (percent) ->
 		@percent = percent
 		$('.volume-control').css('width', "#{@percent}%")
-		document.player.setVolume(@percent)
 
 volumeDetector = (e) ->
 	x_o = @offsetLeft - @scrollLeft
@@ -173,9 +136,20 @@ volumeDetector = (e) ->
 # Here we get other visual and aesthetic
 # javascript, for example, animations.
 
+newMainVideoLoaded = ->
+	z = new MediaInterfaceElement(playing_video)
+
+	z_checker = ->
+		if z.loaded
+			$('.nowplaying').html z.render()
+		else 
+			setTimeout z_checker,200
+
+	setTimeout z_checker,200
+
 isPlaying = ->
 	$('.play-control').hide()
-	$('.pause-control').show()
+	$('.pause-control').show() 
 
 isNoLongerPlaying = ->
 	$('.play-control').show()
@@ -192,4 +166,7 @@ onAllReady = ->
 	$('.skip-control').click document.skip
 	$('.play-control').click document.play
 
-	
+document.addNewVideoViaModal = ->
+	video_code = $('#ytvideomodal').val()
+	$(".new-video-modal").modal("hide")
+	socket.emit 'add', { video_code: video_code }

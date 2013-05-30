@@ -138,7 +138,7 @@ Video = (function() {
         }
       });
     } else {
-      db.query("insert into videos (video_code) value (" + this.video_code + ")");
+      db.query("insert into videos (video_code) value ('" + this.video_code + "')");
       this.saved = true;
       if (callback != null) {
         return callback();
@@ -192,12 +192,18 @@ io.sockets.on('connection', function(socket) {
     return _results;
   });
   socket.on('skip', function(video) {
-    var v;
+    var s, v, _i, _len, _results;
 
-    return v = new Video(video.id, function() {
+    v = new Video(video.id, function() {
       v.updatePlayedTime();
       return setTimeout(massUpdate, 500);
     });
+    _results = [];
+    for (_i = 0, _len = sockets.length; _i < _len; _i++) {
+      s = sockets[_i];
+      _results.push(s.emit('skipped', video.video_code));
+    }
+    return _results;
   });
   socket.on('volume', function(volume) {
     var s, _i, _len, _results;
@@ -207,7 +213,7 @@ io.sockets.on('connection', function(socket) {
     _results = [];
     for (_i = 0, _len = sockets.length; _i < _len; _i++) {
       s = sockets[_i];
-      _results.push(s.emit('play', volume));
+      _results.push(s.emit('volume', volume));
     }
     return _results;
   });

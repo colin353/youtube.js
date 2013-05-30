@@ -129,7 +129,7 @@ class Video
 				me.id = result.insertId
 				callback() if callback?
 		else
-			db.query "insert into videos (video_code) value (#{@video_code})"
+			db.query "insert into videos (video_code) value ('#{@video_code}')"
 			@saved = yes
 			callback() if callback?
 
@@ -183,13 +183,16 @@ io.sockets.on 'connection', (socket) ->
 			v.updatePlayedTime()
 			setTimeout(massUpdate,500)
 
+		for s in sockets
+			s.emit 'skipped', video.video_code
+
 	socket.on 'volume', (volume) ->
 		# When somebody says pause video
 		console.log "Somebody changed volume to:"
 		console.log volume
 
 		for s in sockets
-			s.emit 'play', volume
+			s.emit 'volume', volume
 
 	socket.on 'add', (video) ->
 		# When somebody says pause video
